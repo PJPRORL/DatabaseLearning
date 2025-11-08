@@ -623,14 +623,34 @@
                 top: 0;
                 left: 0;
                 height: 100vh;
-                width: 16rem;
-                transform: translateX(-100%);
+                width: 80vw;
+                /* neem nooit hele breedte in */
+                max-width: 18rem;
+                /* cap op desktop-achtige maat */
+                transform: translateX(-105%);
                 transition: transform 0.3s ease;
                 z-index: 50;
-                display: block !important;
+                display: none !important;
+                /* standaard onzichtbaar op mobiel */
+            }
+
+            /* Portrait: iets smaller om content niet te overlappen */
+            @media (orientation: portrait) {
+                .sidebar-nav {
+                    width: 76vw;
+                }
+            }
+
+            /* Landscape: sidebar mag iets breder, maar nog geen full width */
+            @media (orientation: landscape) {
+                .sidebar-nav {
+                    width: 60vw;
+                    max-width: 20rem;
+                }
             }
 
             .sidebar-nav.open {
+                display: block !important;
                 transform: translateX(0);
             }
 
@@ -755,6 +775,102 @@
             background-color: #F9FAFB;
             /* gray-50 */
             font-weight: 600;
+        }
+
+        /* ========== QUIZ STYLES ========== */
+        .quiz-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 0.75rem;
+            background: #ffffff;
+            box-shadow: 0 10px 20px rgba(2, 6, 23, 0.04);
+        }
+
+        .quiz-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            background: linear-gradient(90deg, #ecfdf5 0%, #f0f9ff 100%);
+            border-radius: 0.75rem 0.75rem 0 0;
+        }
+
+        .quiz-title {
+            font-weight: 700;
+            color: #065f46;
+        }
+
+        .quiz-body {
+            padding: 1rem;
+        }
+
+        .quiz-actions {
+            padding: 0.75rem 1rem;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            gap: .5rem;
+        }
+
+        .quiz-choice {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            background: #ffffff;
+        }
+
+        .quiz-choice:hover {
+            border-color: #a7f3d0;
+            background: #f0fdf4;
+        }
+
+        .quiz-choice.selected {
+            border-color: #10b981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, .15);
+        }
+
+        .quiz-choice.correct {
+            background: #ecfdf5;
+            border-color: #10b981;
+        }
+
+        .quiz-choice.incorrect {
+            background: #fff1f2;
+            border-color: #f43f5e;
+        }
+
+        .quiz-explanation {
+            margin-top: .5rem;
+            padding: .5rem .75rem;
+            border-radius: .5rem;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+        }
+
+        .quiz-progress {
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+
+        .quiz-progress>div {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #14b8a6);
+        }
+
+        .quiz-badge {
+            display: inline-block;
+            margin-left: .375rem;
+            padding: .125rem .375rem;
+            font-size: .75rem;
+            border-radius: .375rem;
+            background: #ecfdf5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
         }
     </style>
 </head>
@@ -3792,6 +3908,195 @@ CREATE TABLE Afdeling (
                     const sidebarNav = document.getElementById('sidebar-nav');
                     const mobileMenuBtn = document.getElementById('mobile-menu-btn');
 
+                    // ========== QUIZ DATA ==========
+                    const QUIZZES = [
+                        {
+                            sectionId: 'deel-1',
+                            title: 'Kennischeck – Fundamenten',
+                            questions: [
+                                {
+                                    id: 'd1q1', type: 'single', prompt: 'Welke eigenschap hoort bij relationele tabellen?', choices: [
+                                        { id: 'a', text: 'Rijvolgorde bepaalt de betekenis', correct: false },
+                                        { id: 'b', text: 'Kolomvolgorde is onbelangrijk', correct: true }
+                                    ], explanation: 'De volgorde van rijen en kolommen is niet bepalend in het relationele model.'
+                                },
+                                { id: 'd1q2', type: 'text', prompt: 'Hoe noemen we een tabel in het relationele model? (één woord)', answerPattern: '^relatie$', explanation: 'Een tabel heet een “relatie”.' },
+                                {
+                                    id: 'd1q3', type: 'multi', prompt: 'Kruis de juiste uitspraken aan:', choices: [
+                                        { id: 'a', text: 'Data zijn ruwe feiten', correct: true },
+                                        { id: 'b', text: 'Informatie is geïnterpreteerde data', correct: true },
+                                        { id: 'c', text: 'Data is altijd betekenisvol', correct: false }
+                                    ], explanation: 'Data zijn ruwe feiten; informatie is data in context.'
+                                },
+                                {
+                                    id: 'd1q4', type: 'single', prompt: 'Wat is een DBMS?', choices: [
+                                        { id: 'a', text: 'Software om databases te beheren', correct: true },
+                                        { id: 'b', text: 'Een datatype voor tekst', correct: false }
+                                    ], explanation: 'Een DBMS beheert de opslag, toegang en integriteit van data.'
+                                },
+                                {
+                                    id: 'd1q5', type: 'single', prompt: 'Een cel (rij x kolom) bevat …', choices: [
+                                        { id: 'a', text: 'Meerdere waarden', correct: false },
+                                        { id: 'b', text: 'Exact één atomische waarde', correct: true }
+                                    ], explanation: 'Atomisch: één waarde per kruising van rij en kolom.'
+                                },
+                                { id: 'd1q6', type: 'text', prompt: 'Welke sleutel garandeert unieke rijen? (twee woorden of Engels)', answerPattern: '^primaire sleutel$|^primary key$', explanation: 'De primaire sleutel (Primary Key) garandeert uniekheid.' }
+                            ]
+                        },
+                        {
+                            sectionId: 'deel-2',
+                            title: 'Kennischeck – Modellen',
+                            questions: [
+                                {
+                                    id: 'd2q1', type: 'single', prompt: 'Wat is toegestaan in een Conceptueel Model (CDM)?', choices: [
+                                        { id: 'a', text: 'M:N relaties', correct: true },
+                                        { id: 'b', text: 'Specifieke DBMS-datatypes', correct: false }
+                                    ], explanation: 'In CDM kun je M:N gebruiken; DBMS-datatypes horen niet in CDM.'
+                                },
+                                {
+                                    id: 'd2q2', type: 'multi', prompt: 'Welke horen bij het Logisch Model (LDM)? (meerdere)', choices: [
+                                        { id: 'a', text: 'PK/FK notatie', correct: true },
+                                        { id: 'b', text: 'Fysieke indexen en partities', correct: false },
+                                        { id: 'c', text: 'Generieke datatypes (int/date)', correct: true }
+                                    ], explanation: 'LDM bevat PK/FK en generieke types; fysieke zaken horen in PDM.'
+                                },
+                                {
+                                    id: 'd2q3', type: 'single', prompt: 'Waar gebruik je DBMS-specifieke datatypes?', choices: [
+                                        { id: 'a', text: 'Conceptueel Model (CDM)', correct: false },
+                                        { id: 'b', text: 'Fysiek Model (PDM)', correct: true }
+                                    ], explanation: 'DBMS-specifieke types (bv. varchar2) horen in het PDM.'
+                                },
+                                { id: 'd2q4', type: 'text', prompt: 'Normalisatie reduceert vooral … (één woord)', answerPattern: '^redundan', explanation: 'Normalisatie reduceert redundantie.' },
+                                {
+                                    id: 'd2q5', type: 'multi', prompt: 'Welke uitspraken over CDM kloppen?', choices: [
+                                        { id: 'a', text: 'Geen DBMS-datatypes', correct: true },
+                                        { id: 'b', text: 'PK/FK zijn verplicht', correct: false },
+                                        { id: 'c', text: 'M:N relaties toegestaan', correct: true }
+                                    ], explanation: 'CDM is business-semantiek: geen technische details, M:N kan.'
+                                }
+                            ]
+                        },
+                        {
+                            sectionId: 'deel-3',
+                            title: 'Kennischeck – Sleutels',
+                            questions: [
+                                {
+                                    id: 'd3q1', type: 'multi', prompt: 'Kruis alle eigenschappen van een PK aan:', choices: [
+                                        { id: 'a', text: 'Uniek', correct: true },
+                                        { id: 'b', text: 'Mag NULL zijn', correct: false },
+                                        { id: 'c', text: 'Identificeert rij', correct: true }
+                                    ], explanation: 'PK is uniek, niet-NULL en identificeert de rij.'
+                                },
+                                {
+                                    id: 'd3q2', type: 'single', prompt: 'Wat is een Alternatieve Sleutel (AK)?', choices: [
+                                        { id: 'a', text: 'Een kandidaat-sleutel die niet als PK is gekozen', correct: true },
+                                        { id: 'b', text: 'Een willekeurige FK', correct: false }
+                                    ], explanation: 'AK is een kandidaat-sleutel die geen PK is.'
+                                },
+                                {
+                                    id: 'd3q3', type: 'single', prompt: 'Wat is een surrogaat sleutel?', choices: [
+                                        { id: 'a', text: 'Een kunstmatige sleutel gegenereerd door het systeem', correct: true },
+                                        { id: 'b', text: 'Een natuurlijke sleutel vanuit de business', correct: false }
+                                    ], explanation: 'Surrogaat = kunstmatig (bv. IDENTITY/UUID).'
+                                },
+                                {
+                                    id: 'd3q4', type: 'multi', prompt: 'Selecteer juiste uitspraken over Foreign Keys:', choices: [
+                                        { id: 'a', text: 'Verwijst naar PK of AK van de parent', correct: true },
+                                        { id: 'b', text: 'Kan NULL zijn afhankelijk van de relatie/businessregels', correct: true },
+                                        { id: 'c', text: 'Is altijd uniek', correct: false }
+                                    ], explanation: 'FK verwijst naar een sleutel; uniekheid is niet standaard vereist.'
+                                }
+                            ]
+                        },
+                        {
+                            sectionId: 'deel-4',
+                            title: 'Kennischeck – Relaties',
+                            questions: [
+                                {
+                                    id: 'd4q1', type: 'single', prompt: 'Waar staat de FK bij 1:N?', choices: [
+                                        { id: 'a', text: 'Altijd aan de 1-kant', correct: false },
+                                        { id: 'b', text: 'Altijd aan de N-kant', correct: true }
+                                    ], explanation: 'De FK staat aan de “veel”-kant.'
+                                },
+                                { id: 'd4q2', type: 'text', prompt: 'Hoe los je een M:N relatie op? (één woord)', answerPattern: '^associatie|associatietabel|tussentabel$', explanation: 'Door een associatietabel/tussentabel met twee 1:N relaties.' },
+                                {
+                                    id: 'd4q3', type: 'single', prompt: 'Een 1:1 relatie wordt vaak gebruikt voor …', choices: [
+                                        { id: 'a', text: 'Optionele detailgegevens in aparte tabel', correct: true },
+                                        { id: 'b', text: 'Het modelleren van M:N', correct: false }
+                                    ], explanation: '1:1 splitst vaak optionele of zelden gebruikte gegevens af.'
+                                },
+                                {
+                                    id: 'd4q4', type: 'multi', prompt: 'Eigenschappen van een associatietabel:', choices: [
+                                        { id: 'a', text: 'Bevat FKs naar beide entiteiten', correct: true },
+                                        { id: 'b', text: 'Lost M:N relaties op', correct: true },
+                                        { id: 'c', text: 'Mag nooit extra attributen bevatten', correct: false }
+                                    ], explanation: 'Associatietabellen kunnen extra attributen bevatten (bv. rol, datum).'
+                                },
+                                { id: 'd4q5', type: 'text', prompt: 'Hoe heet een relatie van een entiteit met zichzelf? (één woord)', answerPattern: '^recurs', explanation: 'Dat is een recursieve relatie.' }
+                            ]
+                        },
+                        {
+                            sectionId: 'deel-5',
+                            title: 'Kennischeck – Constraints',
+                            questions: [
+                                {
+                                    id: 'd5q1', type: 'single', prompt: 'Wat betekent NNA bij een attribuut?', choices: [
+                                        { id: 'a', text: 'Null Not Allowed', correct: true },
+                                        { id: 'b', text: 'Null Now Allowed', correct: false }
+                                    ], explanation: 'NNA = Null Not Allowed.'
+                                },
+                                {
+                                    id: 'd5q2', type: 'single', prompt: 'Welke ON DELETE actie verwijdert children?', choices: [
+                                        { id: 'a', text: 'DTR (Restrict)', correct: false },
+                                        { id: 'b', text: 'DTC (Cascade)', correct: true },
+                                        { id: 'c', text: 'DTN (Set Null)', correct: false }
+                                    ], explanation: 'Cascade verwijdert de children automatisch.'
+                                },
+                                {
+                                    id: 'd5q3', type: 'multi', prompt: 'Wat doet een UNIQUE constraint? (meerdere)', choices: [
+                                        { id: 'a', text: 'Voorkomt duplicaten', correct: true },
+                                        { id: 'b', text: 'Kan (afhankelijk van DBMS) meerdere NULL-waarden toestaan', correct: true },
+                                        { id: 'c', text: 'Verwijdert rijen bij conflict', correct: false }
+                                    ], explanation: 'UNIQUE voorkomt duplicaten; gedrag met NULLs verschilt per DBMS.'
+                                },
+                                {
+                                    id: 'd5q4', type: 'single', prompt: 'Een CHECK constraint …', choices: [
+                                        { id: 'a', text: 'Valideert toegestane waarden in een kolom', correct: true },
+                                        { id: 'b', text: 'Bepaalt join-strategieën van de optimizer', correct: false }
+                                    ], explanation: 'CHECK valideert waardebereiken of patronen.'
+                                },
+                                { id: 'd5q5', type: 'text', prompt: 'Welke afkorting hoort bij ON DELETE SET NULL? (drie letters)', answerPattern: '^dtn$', explanation: 'DTN staat voor Set Null.' }
+                            ]
+                        },
+                        {
+                            sectionId: 'deel-6',
+                            title: 'Kennischeck – SQL Implementatie',
+                            questions: [
+                                {
+                                    id: 'd6q1', type: 'single', prompt: 'Wat creëer je eerst in correcte SQL-orde?', choices: [
+                                        { id: 'a', text: 'Tabellen zonder FK', correct: true },
+                                        { id: 'b', text: 'Foreign Keys', correct: false }
+                                    ], explanation: 'Eerst tabellen, nadien constraints zoals FK.'
+                                },
+                                { id: 'd6q2', type: 'text', prompt: 'Hoe noem je het verwijderen van child-rijen automatisch? (één woord)', answerPattern: '^cascade$', explanation: 'Dat is “cascade”.' },
+                                {
+                                    id: 'd6q3', type: 'multi', prompt: 'Kies de correcte drop-volgorde:', choices: [
+                                        { id: 'a', text: 'Eerst foreign keys droppen', correct: true },
+                                        { id: 'b', text: 'Daarna tabellen droppen', correct: true },
+                                        { id: 'c', text: 'Altijd eerst views droppen', correct: false }
+                                    ], explanation: 'Verwijder afhankelijkheden (FK) vóór tabellen.'
+                                },
+                                {
+                                    id: 'd6q4', type: 'single', prompt: 'DML staat voor …', choices: [
+                                        { id: 'a', text: 'Data Manipulation Language', correct: true },
+                                        { id: 'b', text: 'Database Machine Logic', correct: false }
+                                    ], explanation: 'DML = SELECT/INSERT/UPDATE/DELETE.'
+                                },
+                                { id: 'd6q5', type: 'text', prompt: 'Welk SQL-commando gebruik je om de structuur te wijzigen? (één woord)', answerPattern: '^alter$', explanation: 'ALTER TABLE …' }
+                            ]
+                        }
+                    ];
+
                     function updateActiveLink(targetId) {
                         navLinks.forEach(link => {
                             link.classList.toggle('active', link.getAttribute('data-target') === targetId);
@@ -3846,6 +4151,405 @@ CREATE TABLE Afdeling (
                                 }
                             }
                         }
+                    });
+
+                    // ========== QUIZ ENGINE ==========
+                    class QuizEngine {
+                        constructor(config, container, onFinish) {
+                            this.config = config;
+                            this.container = container;
+                            this.onFinish = onFinish;
+                            this.index = 0;
+                            this.answers = {};
+                            this.loadProgress();
+                            this.renderIntro();
+                        }
+                        key() { return `quiz:${this.config.sectionId}`; }
+                        loadProgress() {
+                            const raw = localStorage.getItem(this.key());
+                            this.progress = raw ? JSON.parse(raw) : null;
+                        }
+                        saveProgress(summary) {
+                            localStorage.setItem(this.key(), JSON.stringify(summary));
+                        }
+                        renderIntro() {
+                            this.container.innerHTML = `
+                              <div class="quiz-card">
+                                <div class="quiz-header">
+                                  <div class="quiz-title">${this.config.title}</div>
+                                  <div class="text-sm text-slate-600">${this.config.questions.length} vragen</div>
+                                </div>
+                                <div class="quiz-body">
+                                  <p class="mb-3">Test kort je begrip van dit deel voordat je verder gaat.</p>
+                                  ${this.progress ? `<div class="mb-3 text-sm text-slate-600">Laatste score: <strong>${this.progress.score}/${this.progress.total}</strong></div>` : ''}
+                                  <div class="quiz-progress mb-3"><div style="width:0%"></div></div>
+                                  <button class="start-btn px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700">Start</button>
+                                </div>
+                              </div>`;
+                            this.container.querySelector('.start-btn').addEventListener('click', () => this.renderQuestion());
+                        }
+                        renderQuestion() {
+                            const q = this.config.questions[this.index];
+                            const progressPct = Math.round((this.index) / this.config.questions.length * 100);
+                            const choicesHtml = q.type === 'text' ? `
+                                <input type="text" class="quiz-text w-full p-2 border rounded" placeholder="Typ je antwoord..." />
+                            ` : q.choices.map(c => `
+                                <label class="quiz-choice" data-id="${c.id}">
+                                  <input ${q.type === 'multi' ? 'type="checkbox"' : 'type="radio" name="q"'} class="sr-only">
+                                  <span>${c.text}</span>
+                                </label>`).join('');
+                            this.container.innerHTML = `
+                              <div class="quiz-card">
+                                <div class="quiz-header">
+                                  <div class="quiz-title">${this.config.title}</div>
+                                  <div class="text-sm text-slate-600">${this.index + 1}/${this.config.questions.length}</div>
+                                </div>
+                                <div class="quiz-body">
+                                  <div class="mb-2 font-semibold">${q.prompt}</div>
+                                  <div class="space-y-2">${choicesHtml}</div>
+                                  <div class="quiz-explanation hidden"></div>
+                                </div>
+                                <div class="quiz-actions">
+                                  <button class="check-btn px-3 py-2 bg-slate-800 text-white rounded hover:bg-slate-900">Check</button>
+                                  <button class="next-btn px-3 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 hidden">Volgende</button>
+                                </div>
+                                <div class="p-3"><div class="quiz-progress"><div style="width:${progressPct}%"></div></div></div>
+                              </div>`;
+                            // Choice selection styling
+                            this.container.querySelectorAll('.quiz-choice').forEach(el => {
+                                const input = el.querySelector('input');
+                                // Sync class with input state (for accessibility/keyboard)
+                                if (q.type === 'multi') {
+                                    input.addEventListener('change', (e) => {
+                                        el.classList.toggle('selected', input.checked);
+                                    });
+                                } else {
+                                    input.addEventListener('change', () => {
+                                        this.container.querySelectorAll('.quiz-choice').forEach(x => {
+                                            x.classList.remove('selected');
+                                            const rx = x.querySelector('input');
+                                            if (rx) rx.checked = false;
+                                        });
+                                        el.classList.add('selected');
+                                        input.checked = true;
+                                    });
+                                }
+                                // Click on label for mouse/touch
+                                el.addEventListener('click', (ev) => {
+                                    if (q.type === 'multi') {
+                                        ev.preventDefault();
+                                        const willSelect = !el.classList.contains('selected');
+                                        el.classList.toggle('selected', willSelect);
+                                        input.checked = willSelect;
+                                    } else {
+                                        this.container.querySelectorAll('.quiz-choice').forEach(x => {
+                                            x.classList.remove('selected');
+                                            const rx = x.querySelector('input');
+                                            if (rx) rx.checked = false;
+                                        });
+                                        el.classList.add('selected');
+                                        input.checked = true;
+                                    }
+                                });
+                            });
+                            this.container.querySelector('.check-btn').addEventListener('click', () => this.check(q));
+                            this.container.querySelector('.next-btn').addEventListener('click', () => this.next());
+                        }
+                        check(q) {
+                            let correct = false;
+                            if (q.type === 'text') {
+                                const val = (this.container.querySelector('.quiz-text')?.value || '').trim().toLowerCase();
+                                correct = !!(new RegExp(q.answerPattern, 'i').test(val));
+                            } else if (q.type === 'single') {
+                                const sel = this.container.querySelector('.quiz-choice.selected');
+                                const id = sel ? sel.getAttribute('data-id') : null;
+                                correct = !!q.choices.find(c => c.id === id && c.correct);
+                                // visual
+                                this.container.querySelectorAll('.quiz-choice').forEach(el => {
+                                    const eid = el.getAttribute('data-id');
+                                    const isCorrect = q.choices.find(c => c.id === eid)?.correct;
+                                    el.classList.add(isCorrect ? 'correct' : 'incorrect');
+                                });
+                            } else if (q.type === 'multi') {
+                                const selectedIds = [...this.container.querySelectorAll('.quiz-choice.selected')].map(el => el.getAttribute('data-id'));
+                                const correctSet = q.choices.filter(c => c.correct).map(c => c.id).sort().join(',');
+                                const selectedSet = selectedIds.sort().join(',');
+                                correct = correctSet === selectedSet;
+                                this.container.querySelectorAll('.quiz-choice').forEach(el => {
+                                    const eid = el.getAttribute('data-id');
+                                    const isCorrect = q.choices.find(c => c.id === eid)?.correct;
+                                    el.classList.add(isCorrect ? 'correct' : 'incorrect');
+                                });
+                            }
+                            this.answers[q.id] = !!correct;
+                            const exp = this.container.querySelector('.quiz-explanation');
+                            if (exp) {
+                                exp.classList.remove('hidden');
+                                exp.innerHTML = `${correct ? '<span class="text-emerald-700 font-semibold">Correct</span>' : '<span class="text-rose-700 font-semibold">Niet correct</span>'} – ${q.explanation || ''}`;
+                            }
+                            const nextBtn = this.container.querySelector('.next-btn');
+                            if (nextBtn) nextBtn.classList.remove('hidden');
+                        }
+                        next() {
+                            this.index++;
+                            if (this.index >= this.config.questions.length) {
+                                this.finish();
+                            } else {
+                                this.renderQuestion();
+                            }
+                        }
+                        finish() {
+                            const total = this.config.questions.length;
+                            const score = Object.values(this.answers).filter(Boolean).length;
+                            const summary = { score, total, ts: Date.now() };
+                            this.saveProgress(summary);
+                            this.container.innerHTML = `
+                              <div class="quiz-card">
+                                <div class="quiz-header"><div class="quiz-title">${this.config.title}</div></div>
+                                <div class="quiz-body">
+                                  <div class="text-lg font-semibold mb-2">Jouw score: ${score}/${total}</div>
+                                  <div class="quiz-progress mb-3"><div style="width:${Math.round(score / total * 100)}%"></div></div>
+                                  <button class="restart px-3 py-2 bg-slate-800 text-white rounded hover:bg-slate-900">Opnieuw</button>
+                                </div>
+                              </div>`;
+                            this.container.querySelector('.restart').addEventListener('click', () => { this.index = 0; this.answers = {}; this.renderIntro(); });
+                            if (typeof this.onFinish === 'function') this.onFinish(this.config.sectionId, summary);
+                        }
+                    }
+
+                    function renderQuizBlocks() {
+                        QUIZZES.forEach(cfg => {
+                            const sec = document.getElementById(cfg.sectionId);
+                            if (!sec) return;
+                            let host = sec.querySelector('.quiz-host');
+                            if (!host) {
+                                host = document.createElement('div');
+                                host.className = 'quiz-host mt-6';
+                                sec.appendChild(host);
+                            }
+                            new QuizEngine(cfg, host, updateSidebarBadge);
+
+                            // Dynamische 10-vragen toets CTA
+                            let dyn = sec.querySelector('.dyn-quiz-host');
+                            if (!dyn) {
+                                dyn = document.createElement('div');
+                                dyn.className = 'dyn-quiz-host mt-6';
+                                dyn.innerHTML = `<div class="quiz-card"><div class="quiz-header"><div class="quiz-title">Hoofdstuktoets – 10 vragen</div></div><div class="quiz-body"><p class="mb-3">Klaar met dit hoofdstuk? Start een willekeurige 10-vragen toets op basis van de stof.</p><button class="dyn-start px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700">Start kennistoets</button><div class="dyn-container mt-3"></div></div></div>`;
+                                sec.appendChild(dyn);
+                                const btn = dyn.querySelector('.dyn-start');
+                                const container = dyn.querySelector('.dyn-container');
+                                if (btn && container) {
+                                    btn.addEventListener('click', async () => {
+                                        const bank = await loadQuestionBank();
+                                        const pool = bank.questions.filter(q => q.chapterId === cfg.sectionId);
+                                        const last = JSON.parse(localStorage.getItem(`quiz:last:${cfg.sectionId}`) || 'null');
+                                        const avoid = last?.questionIds || [];
+                                        const picked = pickRandomQuestions([...pool], 10, avoid);
+                                        new DynamicQuizEngine(cfg.sectionId, picked, container, updateSidebarBadge);
+                                    });
+                                }
+                            }
+                        });
+                    }
+
+                    // --- Loader en helpers ---
+                    async function loadQuestionBank() {
+                        if (window.__QUESTION_BANK__) return window.__QUESTION_BANK__;
+                        try {
+                            const res = await fetch('questions.json', { cache: 'no-store' });
+                            if (!res.ok) throw new Error('Failed to load questions.json');
+                            const data = await res.json();
+                            window.__QUESTION_BANK__ = data;
+                            return data;
+                        } catch (e) {
+                            // Fallback op minimale inline set
+                            window.__QUESTION_BANK__ = { questions: [] };
+                            return window.__QUESTION_BANK__;
+                        }
+                    }
+
+                    function pickRandomQuestions(pool, count, avoidIds = []) {
+                        const candidates = pool.filter(q => !avoidIds.includes(q.id));
+                        const source = candidates.length >= count ? candidates : pool;
+                        for (let i = source.length - 1; i > 0; i--) {
+                            const j = Math.floor(Math.random() * (i + 1));
+                            [source[i], source[j]] = [source[j], source[i]];
+                        }
+                        return source.slice(0, count);
+                    }
+
+                    class DynamicQuizEngine {
+                        constructor(chapterId, questions, container, onFinish) {
+                            this.chapterId = chapterId;
+                            this.questions = questions;
+                            this.container = container;
+                            this.onFinish = onFinish;
+                            this.render();
+                        }
+                        render() {
+                            const html = [`<form class="space-y-4">`];
+                            this.questions.forEach((q, idx) => {
+                                html.push(`<div class="quiz-card"><div class="quiz-header"><div class="quiz-title">Vraag ${idx + 1}</div></div><div class="quiz-body"><div class="mb-2 font-semibold">${q.prompt}</div>`);
+                                if (q.type === 'text') {
+                                    html.push(`<input type="text" class="w-full p-2 border rounded" name="${q.id}" placeholder="Antwoord">`);
+                                } else {
+                                    const group = q.type === 'multi' ? '' : `name="${q.id}"`;
+                                    q.choices?.forEach(choice => {
+                                        const inputType = q.type === 'multi' ? 'checkbox' : 'radio';
+                                        html.push(`<label class="quiz-choice"><input type="${inputType}" ${group} value="${choice.id}"><span>${choice.text}</span></label>`);
+                                    });
+                                }
+                                html.push(`</div></div>`);
+                            });
+                            html.push(`<div class="flex gap-2"><button type="submit" class="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700">Indienen</button></div>`);
+                            html.push(`</form>`);
+                            this.container.innerHTML = html.join('');
+                            const form = this.container.querySelector('form');
+                            // Selection UX voor multi
+                            this.container.querySelectorAll('.quiz-choice').forEach(el => {
+                                const input = el.querySelector('input');
+                                el.addEventListener('click', (ev) => {
+                                    if (input.type === 'checkbox') {
+                                        // toggle visueel, laat browser checkbox state afhandelen
+                                        setTimeout(() => {
+                                            el.classList.toggle('selected', input.checked);
+                                        }, 0);
+                                    } else {
+                                        // radio: maak andere labels in dezelfde groep los
+                                        const name = input.getAttribute('name');
+                                        this.container.querySelectorAll(`input[name="${name}"]`).forEach(r => r.closest('.quiz-choice').classList.remove('selected'));
+                                        setTimeout(() => {
+                                            el.classList.add('selected');
+                                        }, 0);
+                                    }
+                                });
+                            });
+                            form.addEventListener('submit', (e) => {
+                                e.preventDefault();
+                                this.evaluate();
+                            });
+                        }
+                        evaluate() {
+                            let score = 0;
+                            const details = [];
+                            this.questions.forEach(q => {
+                                let userAnswer = null;
+                                let correctAnswer = null;
+                                let isCorrect = false;
+                                if (q.type === 'text') {
+                                    const val = (this.container.querySelector(`input[name="${q.id}"]`)?.value || '').trim();
+                                    userAnswer = val;
+                                    isCorrect = !!(new RegExp(q.answerPattern, 'i').test(val));
+                                } else if (q.type === 'single') {
+                                    const sel = this.container.querySelector(`input[name="${q.id}"]:checked`);
+                                    userAnswer = sel ? sel.value : null;
+                                    const correct = q.choices?.find(c => c.correct);
+                                    correctAnswer = correct ? correct.id : null;
+                                    isCorrect = userAnswer === correctAnswer;
+                                } else if (q.type === 'multi') {
+                                    const selected = [...this.container.querySelectorAll(`input[type="checkbox"][value][name="${q.id}"]`)].filter(x => x.checked).map(x => x.value);
+                                    // Als we checkboxen zonder name-groep hebben, selecteer alle checkboxes binnen q-card
+                                    if (selected.length === 0) {
+                                        const within = [...this.container.querySelectorAll(`.quiz-card .quiz-body input[type="checkbox"]`)].filter(inp => inp.closest('.quiz-card').querySelector(`input[name="${q.id}"]`) === null);
+                                    }
+                                    userAnswer = [...this.container.querySelectorAll(`.quiz-card .quiz-body input[type="checkbox"]`)].filter(inp => inp.closest('.quiz-card') && inp.closest('.quiz-card').innerText.includes(q.prompt) && inp.checked).map(inp => inp.value);
+                                    if (Array.isArray(userAnswer) && userAnswer.length === 0) {
+                                        // fallback: alle checkboxes met value die binnen deze vraag staan
+                                        userAnswer = [...this.container.querySelectorAll(`label.quiz-choice input[type="checkbox"]`)].filter(inp => inp.closest('.quiz-card').querySelector('.font-semibold').innerText === q.prompt && inp.checked).map(inp => inp.value);
+                                    }
+                                    const correctIds = (q.choices || []).filter(c => c.correct).map(c => c.id).sort().join(',');
+                                    const chosen = (userAnswer || []).slice().sort().join(',');
+                                    isCorrect = correctIds === chosen;
+                                    correctAnswer = (q.choices || []).filter(c => c.correct).map(c => c.id);
+                                }
+                                if (isCorrect) score++;
+                                details.push({ q, userAnswer, correctAnswer, isCorrect });
+                            });
+                            const total = this.questions.length;
+                            const summary = { score, total, questionIds: this.questions.map(q => q.id), ts: Date.now() };
+                            localStorage.setItem(`quiz:last:${this.chapterId}`, JSON.stringify(summary));
+                            localStorage.setItem(`quiz:${this.chapterId}:${summary.ts}`, JSON.stringify({ ...summary, details }));
+                            if (typeof this.onFinish === 'function') this.onFinish(this.chapterId, summary);
+                            this.renderResults(summary, details);
+                        }
+                        renderResults(summary, details) {
+                            const pct = Math.round(summary.score / summary.total * 100);
+                            const rows = details.map(d => {
+                                const q = d.q;
+                                const your = Array.isArray(d.userAnswer) ? d.userAnswer.join(', ') : (d.userAnswer ?? '—');
+                                let correct = '';
+                                if (q.type === 'text') correct = q.answerPattern;
+                                else if (q.type === 'single') correct = (q.choices || []).find(c => c.correct)?.id || '';
+                                else if (q.type === 'multi') correct = (q.choices || []).filter(c => c.correct).map(c => c.id).join(', ');
+                                const ref = q.reference ? `<a href="#${q.reference.anchorId}" class="text-teal-700 underline">Zie tekst</a>` : '';
+                                const excerpt = q.reference?.excerpt ? `<blockquote class="mt-2 text-sm text-slate-600 border-l-4 border-slate-300 pl-3">${q.reference.excerpt}</blockquote>` : '';
+                                return `<div class="p-3 border rounded ${d.isCorrect ? 'bg-emerald-50 border-emerald-200' : 'bg-rose-50 border-rose-200'}">
+                                    <div class="font-semibold mb-1">${q.prompt}</div>
+                                    <div class="text-sm"><span class="font-medium">Jouw antwoord:</span> ${your}</div>
+                                    <div class="text-sm"><span class="font-medium">Correct:</span> ${correct}</div>
+                                    <div class="quiz-explanation mt-2">${q.explanation || ''} ${ref}${excerpt}</div>
+                                </div>`;
+                            }).join('');
+                            this.container.innerHTML = `<div class="quiz-card">
+                                <div class="quiz-header"><div class="quiz-title">Resultaat</div><div class="text-sm">${summary.score}/${summary.total} (${pct}%)</div></div>
+                                <div class="quiz-body">
+                                  <div class="quiz-progress mb-4"><div style="width:${pct}%"></div></div>
+                                  <div class="space-y-3">${rows}</div>
+                                  <div class="mt-4 flex gap-2">
+                                    <button class="again px-3 py-2 bg-slate-800 text-white rounded hover:bg-slate-900">Nieuwe set</button>
+                                  </div>
+                                </div>
+                              </div>`;
+                            const again = this.container.querySelector('.again');
+                            if (again) {
+                                again.addEventListener('click', async () => {
+                                    const bank = await loadQuestionBank();
+                                    const pool = bank.questions.filter(q => q.chapterId === this.chapterId);
+                                    const avoid = summary.questionIds || [];
+                                    const picked = pickRandomQuestions([...pool], 10, avoid);
+                                    new DynamicQuizEngine(this.chapterId, picked, this.container, this.onFinish);
+                                });
+                            }
+                        }
+                    }
+
+                    function updateSidebarBadge(sectionId, summary) {
+                        const link = document.querySelector(`nav a[data-target='${sectionId}']`);
+                        if (!link) return;
+                        let badge = link.querySelector('.quiz-badge');
+                        const label = `${summary.score}/${summary.total}`;
+                        if (!badge) {
+                            badge = document.createElement('span');
+                            badge.className = 'quiz-badge';
+                            badge.textContent = label;
+                            link.appendChild(badge);
+                        } else {
+                            badge.textContent = label;
+                        }
+                    }
+
+                    // initial load: show stored badges
+                    (function seedBadgesFromStorage() {
+                        QUIZZES.forEach(cfg => {
+                            const raw = localStorage.getItem(`quiz:${cfg.sectionId}`);
+                            if (raw) updateSidebarBadge(cfg.sectionId, JSON.parse(raw));
+                        });
+                    })();
+
+                    renderQuizBlocks();
+
+                    // CTA highlight wanneer sectie-einde in beeld komt
+                    const ctaObserver = new IntersectionObserver(entries => {
+                        entries.forEach(entry => {
+                            if (entry.isIntersecting) {
+                                const host = entry.target.querySelector('.dyn-quiz-host');
+                                if (host) host.classList.add('ring-2', 'ring-emerald-300');
+                            }
+                        });
+                    }, { root: null, threshold: 0.1 });
+                    ['deel-1', 'deel-2', 'deel-3', 'deel-4', 'deel-5', 'deel-6'].forEach(id => {
+                        const sec = document.getElementById(id);
+                        if (sec) ctaObserver.observe(sec);
                     });
 
                     const observerOptions = {
